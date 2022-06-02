@@ -1,6 +1,7 @@
 """Tests standard tap features using the built-in SDK tests library."""
 
 import datetime
+import os
 
 from singer_sdk.testing import get_standard_tap_tests
 
@@ -8,7 +9,7 @@ from tap_autoru.tap import Tapautoru
 
 SAMPLE_CONFIG = {
     "start_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
-    "access_token": ""
+    "access_token": os.getenv('ACCESS_TOKEN')
 }
 
 
@@ -21,6 +22,5 @@ def test_standard_tap_tests():
     )
     for test in tests:
         test()
-
 
 # TODO: Create additional tests as appropriate for your tap.
