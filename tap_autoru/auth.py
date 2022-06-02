@@ -12,7 +12,6 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
     def __init__(
         self,
         stream: RESTStreamBase,
-        access_token: str,
         login: str = None,
         password: str = None,
         default_expiration: Optional[int] = None,
@@ -20,9 +19,9 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
 
         super().__init__(stream=stream)
 
-        self.access_token: Optional[str] = access_token
+        self.headers = stream.http_headers
         self.request_payload = {"login": login, "password": password}
-        self.base_url = stream.base_url
+        self.url_base = stream.url_base
         self._default_expiration = default_expiration
 
         # Initialize internal tracking attributes
@@ -35,13 +34,12 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
         if not self.is_session_id_valid():
             self.update_session_id()
         result = super().auth_headers
-        result["x-authorization"] = self.access_token
         result["x-session-id"] = self.session_id
         return result
 
     @property
     def auth_endpoint(self):
-        return f"{self.base_url}/auth/login"
+        return f"{self.url_base}/auth/login"
 
     def is_session_id_valid(self) -> bool:
         if self.last_refreshed is None:
@@ -60,13 +58,13 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
         """
         request_time = utc_now()
         auth_request_payload = self.request_payload
-        auth_response = requests.post(self.auth_endpoint, data=auth_request_payload)
+        auth_response = requests.post(self.auth_endpoint, json=auth_request_payload, headers=self.headers)
         try:
             auth_response.raise_for_status()
             self.logger.info("OAuth authorization attempt was successful.")
         except Exception as ex:
             raise RuntimeError(
-                f"Failed OAuth login, response was '{auth_response.json()}'. {ex}"
+                f"Failed login, response was '{auth_response.json()}'. {ex}"
             )
         auth_json = auth_response.json()
         self.session_id = auth_json["session"]["id"]
@@ -83,17 +81,15 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
 
     @classmethod
     def create_for_stream(
-        cls: Type["AuthoRuAuthenticator"],
+        cls: Type["AutoRuAuthenticator"],
         stream: RESTStreamBase,
-        access_token: str,
         login: str = None,
         password: str = None,
         default_expiration=None,
-    ) -> "AuthoRuAuthenticator":
+    ) -> "AutoRuAuthenticator":
 
         return cls(
             stream=stream,
-            access_token=access_token,
             login=login,
             password=password,
             default_expiration=default_expiration,

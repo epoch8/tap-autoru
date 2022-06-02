@@ -29,6 +29,14 @@ class Tapautoru(Tap):
             description="The token to authenticate against the API service"
         ),
         th.Property(
+            "autoru_login",
+            th.StringType,
+        ),
+        th.Property(
+            "autoru_password",
+            th.StringType
+        ),
+        th.Property(
             "start_date",
             th.DateTimeType,
             description="The earliest record date to sync"

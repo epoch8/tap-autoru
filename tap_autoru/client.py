@@ -8,7 +8,7 @@ from memoization import cached
 
 from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.streams import RESTStream
-from singer_sdk.authenticators import BearerTokenAuthenticator, APIKeyAuthenticator
+from .auth import AutoRuAuthenticator
 
 SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
 
@@ -29,13 +29,12 @@ class autoruStream(RESTStream):
 
 
     @property
-    def authenticator(self) -> APIKeyAuthenticator:
+    def authenticator(self) -> AutoRuAuthenticator:
         """Return a new authenticator object."""
-        return APIKeyAuthenticator.create_for_stream(
+        return AutoRuAuthenticator.create_for_stream(
             self,
-            key="x-authorization",
-            value=self.config.get("access_token"),
-            location="header"
+            login=self.config.get("autoru_login"),
+            password=self.config.get("autoru_password")
         )
 
 
@@ -45,6 +44,7 @@ class autoruStream(RESTStream):
         headers = {}
         if "user_agent" in self.config:
             headers["User-Agent"] = self.config.get("user_agent")
+        headers["x-authorization"] = self.config.get("access_token")
         headers["Content-Type"] = "application/json"
         headers["Accept"] = "application/json"
         return headers

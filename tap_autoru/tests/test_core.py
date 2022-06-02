@@ -9,7 +9,9 @@ from tap_autoru.tap import Tapautoru
 
 SAMPLE_CONFIG = {
     "start_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
-    "access_token": os.getenv('ACCESS_TOKEN')
+    "access_token": os.getenv("ACCESS_TOKEN"),
+    "autoru_login": os.getenv("AUTORU_LOGIN"),
+    "autoru_password": os.getenv("AUTORU_PASSWORD")
 }
 
 
