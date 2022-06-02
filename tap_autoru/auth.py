@@ -8,51 +8,42 @@ from datetime import datetime
 from singer_sdk.helpers._util import utc_now
 
 
-class AuthoRuAuthenticator(APIAuthenticatorBase):
+class AutoRuAuthenticator(APIAuthenticatorBase):
     def __init__(
         self,
         stream: RESTStreamBase,
         access_token: str,
+        login: str = None,
+        password: str = None,
+        default_expiration: Optional[int] = None,
     ) -> None:
 
         super().__init__(stream=stream)
-        auth_credentials = {"x-authorization": access_token}
 
-
-        if self._auth_headers is None:
-            self._auth_headers = {}
-        self._auth_headers.update(auth_credentials)
-
-        self.request_payload = {}
-
+        self.access_token: Optional[str] = access_token
+        self.request_payload = {"login": login, "password": password}
+        self.base_url = stream.base_url
+        self._default_expiration = default_expiration
 
         # Initialize internal tracking attributes
-        self.access_token: Optional[str] = None
-        self.refresh_token: Optional[str] = None
+        self.session_id: Optional[str] = None
         self.last_refreshed: Optional[datetime] = None
         self.expires_in: Optional[int] = None
 
     @property
     def auth_headers(self) -> dict:
-        """Return a dictionary of auth headers to be applied.
-
-        These will be merged with any `http_headers` specified in the stream.
-
-        Returns:
-            HTTP headers for authentication.
-        """
-        if not self.is_token_valid():
-            self.update_access_token()
+        if not self.is_session_id_valid():
+            self.update_session_id()
         result = super().auth_headers
-        result["Authorization"] = f"Bearer {self.access_token}"
+        result["x-authorization"] = self.access_token
+        result["x-session-id"] = self.session_id
         return result
 
-    def is_token_valid(self) -> bool:
-        """Check if token is valid.
+    @property
+    def auth_endpoint(self):
+        return f"{self.base_url}/auth/login"
 
-        Returns:
-            True if the token is valid (fresh).
-        """
+    def is_session_id_valid(self) -> bool:
         if self.last_refreshed is None:
             return False
         if not self.expires_in:
@@ -61,7 +52,7 @@ class AuthoRuAuthenticator(APIAuthenticatorBase):
             return True
         return False
 
-    def update_access_token(self) -> None:
+    def update_session_id(self) -> None:
         """Update `access_token` along with: `last_refreshed` and `expires_in`.
 
         Raises:
@@ -69,17 +60,19 @@ class AuthoRuAuthenticator(APIAuthenticatorBase):
         """
         request_time = utc_now()
         auth_request_payload = self.request_payload
-        token_response = requests.post("login", data=auth_request_payload)
+        auth_response = requests.post(self.auth_endpoint, data=auth_request_payload)
         try:
-            token_response.raise_for_status()
+            auth_response.raise_for_status()
             self.logger.info("OAuth authorization attempt was successful.")
         except Exception as ex:
             raise RuntimeError(
-                f"Failed OAuth login, response was '{token_response.json()}'. {ex}"
+                f"Failed OAuth login, response was '{auth_response.json()}'. {ex}"
             )
-        token_json = token_response.json()
-        self.access_token = token_json["access_token"]
-        self.expires_in = token_json.get("expires_in", self._default_expiration)
+        auth_json = auth_response.json()
+        self.session_id = auth_json["session"]["id"]
+        self.expires_in = auth_json["session"].get(
+            "expire_timestamp", self._default_expiration
+        )
         if self.expires_in is None:
             self.logger.debug(
                 "No expires_in receied in OAuth response and no "
@@ -93,14 +86,15 @@ class AuthoRuAuthenticator(APIAuthenticatorBase):
         cls: Type["AuthoRuAuthenticator"],
         stream: RESTStreamBase,
         access_token: str,
+        login: str = None,
+        password: str = None,
+        default_expiration=None,
     ) -> "AuthoRuAuthenticator":
 
-        return cls(stream=stream, access_token=access_token)
-
-
-
-
-
-
-
-
+        return cls(
+            stream=stream,
+            access_token=access_token,
+            login=login,
+            password=password,
+            default_expiration=default_expiration,
+        )
