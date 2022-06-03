@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string"
+    },
+    "car_info": {
+      "type": "object",
+      "properties": {
+        "mark": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
