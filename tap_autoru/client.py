@@ -18,9 +18,7 @@ class autoruStream(RESTStream):
 
     url_base = "https://apiauto.ru/1.0"
 
-
     records_jsonpath = "$[*]"  # Or override `parse_response`.
-    next_page_token_jsonpath = "$.next_page"  # Or override `get_next_page_token`.
 
 
     @property
@@ -51,16 +49,10 @@ class autoruStream(RESTStream):
         # TODO: If pagination is required, return a token which can be used to get the
         #       next page. If this is the final page, return "None" to end the
         #       pagination loop.
-        if self.next_page_token_jsonpath:
-            all_matches = extract_jsonpath(
-                self.next_page_token_jsonpath, response.json()
-            )
-            first_match = next(iter(all_matches), None)
-            next_page_token = first_match
-        else:
-            next_page_token = response.headers.get("X-Next-Page", None)
-
-        return next_page_token
+        paging = response.json()["paging"]
+        total_pages = paging.get("page_count")
+        next_page_token = previous_token + 1 if previous_token else 2
+        return None if previous_token == total_pages else next_page_token
 
     def get_url_params(
         self, context: Optional[dict], next_page_token: Optional[Any]
@@ -68,7 +60,7 @@ class autoruStream(RESTStream):
         """Return a dictionary of values to be used in URL parameterization."""
         params: dict = {}
         if next_page_token:
-            params["page"] = next_page_token
+            params["pageNum"] = next_page_token
         if self.replication_key:
             params["sort"] = "asc"
             params["order_by"] = self.replication_key
