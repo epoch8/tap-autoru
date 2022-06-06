@@ -5,25 +5,27 @@ from datetime import date
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_autoru.client import autoruStream
+from singer_sdk import Tap
 
 # TODO: Delete this is if not using json files for schema definition
 SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
 
 
-
-class PlacementOfferStatsStream(autoruStream):
+class OfferStatsStream(autoruStream):
     """Define custom stream."""
     name = "offer_stats"
-    product = "placement"
     records_jsonpath = "$[offer_product_activations_stats][*]"
     primary_keys = ["id"]
     replication_key = None
+
+    def __init__(self, tap: Tap, product: str):
+        super().__init__(tap)
+        self.product = product
 
     @property
     def path(self):
         offer_stats_date = self.config.get("offer_stats_date", date.today().isoformat())
         return f"/dealer/wallet/product/{self.product}/activations/offer-stats?service=autoru&date={offer_stats_date}"
-
 
     # schema_filepath = SCHEMAS_DIR / "offer_stats.json"
     schema = th.PropertiesList(
@@ -104,33 +106,5 @@ class PlacementOfferStatsStream(autoruStream):
             )
         )
 
-
     ).to_dict()
 
-
-class PremiumOfferStatsStream(PlacementOfferStatsStream):
-    product = "premium"
-
-
-class SpecialOfferOfferStatsStream(PlacementOfferStatsStream):
-    product = "special-offer"
-
-
-class BoostOfferStatsStream(PlacementOfferStatsStream):
-    product = "boost"
-
-
-class HighlightingOfferStatsStream(PlacementOfferStatsStream):
-    product = "highlighting"
-
-
-class BadgeOfferStatsStream(PlacementOfferStatsStream):
-    product = "badge"
-
-
-class StoTopOfferStatsStream(PlacementOfferStatsStream):
-    product = "sto-top"
-
-
-class TurboPackageOfferStatsStream(PlacementOfferStatsStream):
-    product = "turbo-package"
