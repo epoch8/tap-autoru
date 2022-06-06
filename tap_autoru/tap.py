@@ -47,6 +47,10 @@ class Tapautoru(Tap):
             th.StringType
         ),
         th.Property(
+            "offer_stats_date",
+            th.DateType,
+        ),
+        th.Property(
             "start_date",
             th.DateTimeType,
             description="The earliest record date to sync"
