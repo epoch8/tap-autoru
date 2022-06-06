@@ -7,28 +7,24 @@ from singer_sdk import typing as th  # JSON schema typing helpers
 # TODO: Import your custom stream types here:
 from tap_autoru.streams import (
     autoruStream,
-    PlacementOfferStatsStream,
-    PremiumOfferStatsStream,
-    SpecialOfferOfferStatsStream,
-    HighlightingOfferStatsStream,
-    BoostOfferStatsStream,
-    TurboPackageOfferStatsStream,
-    StoTopOfferStatsStream,
-    BadgeOfferStatsStream
+    OfferStatsStream
 )
 # TODO: Compile a list of custom stream types here
 #       OR rewrite discover_streams() below with your custom logic.
 STREAM_TYPES = [
-    PlacementOfferStatsStream,
-    PremiumOfferStatsStream,
-    SpecialOfferOfferStatsStream,
-    HighlightingOfferStatsStream,
-    BoostOfferStatsStream,
-    TurboPackageOfferStatsStream,
-    StoTopOfferStatsStream,
-    BadgeOfferStatsStream
+
 ]
 
+OFFER_STATS_PRODUCTS = [
+    "placement",
+    "premium",
+    "special-offer",
+    "boost",
+    "highlighting",
+    "badge",
+    "sto-top",
+    "turbo-package"
+]
 
 class Tapautoru(Tap):
     """autoru tap class."""
@@ -65,4 +61,7 @@ class Tapautoru(Tap):
 
     def discover_streams(self) -> List[Stream]:
         """Return a list of discovered streams."""
-        return [stream_class(tap=self) for stream_class in STREAM_TYPES]
+        streams = [stream_class(tap=self) for stream_class in STREAM_TYPES]
+        offer_stats_streams = [OfferStatsStream(tap=self, product=product) for product in OFFER_STATS_PRODUCTS]
+        streams.extend(offer_stats_streams)
+        return streams
