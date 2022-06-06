@@ -13,14 +13,15 @@ SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
 
 class OfferStatsStream(autoruStream):
     """Define custom stream."""
-    name = "offer_stats"
     records_jsonpath = "$[offer_product_activations_stats][*]"
     primary_keys = ["id"]
     replication_key = None
 
     def __init__(self, tap: Tap, product: str):
-        super().__init__(tap)
         self.product = product
+        self.name = f"{product}_offer_stats"
+        super().__init__(tap)
+
 
     @property
     def path(self):
