@@ -22,7 +22,6 @@ class OfferStatsStream(autoruStream):
         self.name = f"{product}_offer_stats"
         super().__init__(tap)
 
-
     @property
     def path(self):
         offer_stats_date = self.config.get("offer_stats_date", date.today().isoformat())
@@ -91,8 +90,10 @@ class OfferStatsStream(autoruStream):
                 ),
                 th.Property(
                     "services",
-                    th.ObjectType(
-                        th.Property("service", th.StringType)
+                    th.ArrayType(
+                        th.ObjectType(
+                            th.Property("service", th.StringType)
+                        )
                     )
                 ),
             )
@@ -108,4 +109,3 @@ class OfferStatsStream(autoruStream):
         )
 
     ).to_dict()
-
