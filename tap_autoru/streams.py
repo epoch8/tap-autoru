@@ -100,11 +100,13 @@ class OfferStatsStream(autoruStream):
         ),
         th.Property(
             "stats",
-            th.ObjectType(
-                th.Property("date", th.StringType),
-                th.Property("product", th.StringType),
-                th.Property("sum", th.IntegerType),
-                th.Property("count", th.IntegerType)
+            th.ArrayType(
+                th.ObjectType(
+                    th.Property("date", th.StringType),
+                    th.Property("product", th.StringType),
+                    th.Property("sum", th.IntegerType),
+                    th.Property("count", th.IntegerType)
+                )
             )
         )
 
