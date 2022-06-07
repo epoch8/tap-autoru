@@ -21,9 +21,10 @@ class autoruStream(RESTStream):
     records_jsonpath = "$[*]"  # Or override `parse_response`.
 
     @property
+    @cached
     def authenticator(self) -> AutoRuAuthenticator:
         """Return a new authenticator object."""
-        return AutoRuAuthenticator.create_for_stream(
+        return AutoRuAuthenticator(
             self,
             login=self.config.get("autoru_login"),
             password=self.config.get("autoru_password")

@@ -6,7 +6,7 @@ from typing import Type, Optional
 from singer import utils
 from datetime import datetime
 from singer_sdk.helpers._util import utc_now
-
+from pendulum import parse
 
 class AutoRuAuthenticator(APIAuthenticatorBase):
     def __init__(
@@ -27,7 +27,7 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
         # Initialize internal tracking attributes
         self.session_id: Optional[str] = None
         self.last_refreshed: Optional[datetime] = None
-        self.expires_in: Optional[int] = None
+        self.expires_in: Optional[str] = None
 
     @property
     def auth_headers(self) -> dict:
@@ -46,7 +46,8 @@ class AutoRuAuthenticator(APIAuthenticatorBase):
             return False
         if not self.expires_in:
             return True
-        if self.expires_in > (utils.now() - self.last_refreshed).total_seconds():
+        expires_in = parse(self.expires_in)
+        if (expires_in - self.last_refreshed) > (utils.now() - self.last_refreshed):
             return True
         return False
 
