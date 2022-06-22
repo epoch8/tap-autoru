@@ -1,6 +1,6 @@
 import requests
 
-from singer_sdk.authenticators import APIAuthenticatorBase
+from singer_sdk.authenticators import APIAuthenticatorBase, SingletonMeta
 from singer_sdk.streams import Stream as RESTStreamBase
 from typing import Type, Optional
 from singer import utils
@@ -8,7 +8,8 @@ from datetime import datetime
 from singer_sdk.helpers._util import utc_now
 from pendulum import parse
 
-class AutoRuAuthenticator(APIAuthenticatorBase):
+
+class AutoRuAuthenticator(APIAuthenticatorBase, metaclass=SingletonMeta):
     def __init__(
         self,
         stream: RESTStreamBase,

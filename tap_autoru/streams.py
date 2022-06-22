@@ -27,7 +27,7 @@ class OfferStatsStream(autoruStream):
     @property
     def path(self):
         offer_stats_date = self.config.get("offer_stats_date", date.today().isoformat())
-        return f"/dealer/wallet/product/{self.product}/activations/offer-stats?service=autoru&date={offer_stats_date}"
+        return f"/dealer/wallet/product/{self.product}/activations/offer-stats?service=autoru&date={offer_stats_date}&pageSize=50"
 
     # schema_filepath = SCHEMAS_DIR / "offer_stats.json"
     schema = th.PropertiesList(

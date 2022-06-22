@@ -51,7 +51,10 @@ class autoruStream(RESTStream):
         #       pagination loop.
         paging = response.json()["paging"]
         total_pages = paging.get("page_count")
+        if total_pages == 1:
+            return None
         next_page_token = previous_token + 1 if previous_token else 2
+
         return None if previous_token == total_pages else next_page_token
 
     def get_url_params(
