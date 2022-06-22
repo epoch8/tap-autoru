@@ -37,7 +37,7 @@ class autoruStream(RESTStream):
         headers = {}
         if "user_agent" in self.config:
             headers["User-Agent"] = self.config.get("user_agent")
-        headers["x-authorization"] = self.config.get("access_token")
+        headers["x-authorization"] = str(self.config.get("access_token"))
         headers["Content-Type"] = "application/json"
         headers["Accept"] = "application/json"
         return headers
